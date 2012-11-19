@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'currentwebpage' target in the 'currentwebpage' project
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+#endif
