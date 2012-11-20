@@ -3,7 +3,7 @@
 //  currentwebpage
 
 
-#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
 
 NSDictionary* CurrentWebPageCurrentInfo(NSString* prefer);
 NSDictionary* CurrentWebPageSafariInfo();

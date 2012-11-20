@@ -11,6 +11,8 @@
 #define kSafariShortName @"safari"
 #define kChromeShortName @"chrome"
 
+#define kSafariBundleIdentifier @"com.apple.Safari"
+#define kChromeBundleIdentifier @"com.google.Chrome"
 
 // Safari か Chrome を探す
 // prefer に @"safari" か @"chrome" を渡すとそっちだけを探す。自動判別なら nil を渡す
@@ -39,6 +41,24 @@ NSString* CurrentWebPageCurrentBrowser(NSString* prefer)
         }
     }
     CFRelease(list);
+    
+    //ウインドウが見つからなかったら起動中のプロセスを見てみる。
+    NSArray *allApp=[[NSWorkspace sharedWorkspace]runningApplications];
+    for (NSRunningApplication* app in allApp) {
+        NSString *bundleIdentifier=app.bundleIdentifier;
+        if ([bundleIdentifier isEqualToString:kSafariBundleIdentifier]) {
+            if([prefer length]==0 || [prefer isEqualToString:kSafariShortName]){
+                result=kSafariShortName;
+                break;
+            }
+        }else if([bundleIdentifier isEqualToString:kChromeBundleIdentifier]) {
+            if([prefer length]==0 || [prefer isEqualToString:kChromeShortName]){
+                result=kChromeShortName;
+                break;
+            }
+        }
+    }
+    
     return result;
 }
 
@@ -136,12 +156,25 @@ NSDictionary* CurrentWebPageCurrentInfo(NSString* prefer)
         return CurrentWebPageChromeInfo();
     }else{
         NSString* currentBrowser=CurrentWebPageCurrentBrowser(nil);
+        NSDictionary* result=nil;
         
         if ([currentBrowser isEqualToString:kSafariShortName]) {
-            return CurrentWebPageSafariInfoInternal();
+            result=CurrentWebPageSafariInfoInternal();
         }else if ([currentBrowser isEqualToString:kChromeShortName]) {
-            return CurrentWebPageChromeInfoInternal();
+            result=CurrentWebPageChromeInfoInternal();
         }
+        
+        //起動はしているようだがウインドウが見つからなかった場合、もう一方を見る
+        //対応ブラウザが増えたら処理が面倒なことになるでござる
+        if (!result) {
+            if ([currentBrowser isEqualToString:kSafariShortName]) {
+                return CurrentWebPageChromeInfo();
+            }else if ([currentBrowser isEqualToString:kChromeShortName]) {
+                return CurrentWebPageSafariInfo();
+            }
+        }
+        
+        return result;
     }
     
     return nil;
